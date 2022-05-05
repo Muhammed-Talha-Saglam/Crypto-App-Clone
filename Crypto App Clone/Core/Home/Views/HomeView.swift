@@ -12,6 +12,9 @@ struct HomeView: View {
     @EnvironmentObject private var vm: HomeViewModel
     @State private var showPortfolio = false
     @State private var showPortfolioView = false
+    
+    @State private var selectedCoin: CoinModel? = nil
+    @State private var showDetailView = false
 
     var body: some View {
         ZStack {
@@ -39,6 +42,13 @@ struct HomeView: View {
                 Spacer()
             }
         }
+        .background(
+            NavigationLink(
+                isActive: $showDetailView,
+                destination: {DetailLoadingView(coin: $selectedCoin)},
+                label: {EmptyView()}
+            )
+        )
     }
 }
 
@@ -48,7 +58,7 @@ struct HomeView_Previews: PreviewProvider {
             HomeView()
                 .navigationBarHidden(true)
         }
-        .preferredColorScheme(.dark)
+        .preferredColorScheme(.light)
         .environmentObject(dev.homeVM)
     }
 }
@@ -91,30 +101,74 @@ extension HomeView {
             ForEach(vm.allCoins) { coin in
                 CoinRowView(coin: coin, showHoldingsColumn: false)
                     .listRowInsets(.init(top: 10, leading: 0, bottom: 10, trailing: 10))
+                    .onTapGesture {
+                        segue(coin: coin)
+                    }
             }
         }
         .listStyle(.plain)
     }
-    
+        
     private var portfolioCoinsList: some View {
         List {
             ForEach(vm.portfolioCoins) { coin in
                 CoinRowView(coin: coin, showHoldingsColumn: true)
                     .listRowInsets(.init(top: 10, leading: 0, bottom: 10, trailing: 10))
+                    .onTapGesture {
+                        segue(coin: coin)
+                    }
             }
         }
         .listStyle(.plain)
     }
     
+    private func segue(coin: CoinModel) {
+        selectedCoin = coin
+        showDetailView.toggle() 
+    }
+    
     private var columnsTitle: some View {
         HStack {
-            Text("Coin")
+            HStack(spacing: 4) {
+                Text("Coin")
+                Image(systemName: "chevron.down")
+                    .opacity((vm.sortOption == .rank || vm.sortOption == .rankReversed) ? 1.0 : 0.0)
+                    .rotationEffect(Angle(degrees: vm.sortOption == .rank ? 0 : 180))
+            }
+            .onTapGesture {
+                withAnimation {
+                    vm.sortOption = vm.sortOption == .rank ? .rankReversed : .rank
+                }
+            }
+            
             Spacer()
             if showPortfolio {
-                Text("Holding")
+                HStack(spacing: 4) {
+                    Text("Holding")
+                        .frame(width: UIScreen.main.bounds.width / 3.5, alignment: .trailing)
+                    Image(systemName: "chevron.down")
+                        .opacity((vm.sortOption == .holdings || vm.sortOption == .holdingsReversed) ? 1.0 : 0.0)
+                        .rotationEffect(Angle(degrees: vm.sortOption == .holdings ? 0 : 180))
+                }
+                .onTapGesture {
+                    withAnimation {
+                        vm.sortOption = vm.sortOption == .holdings ? .holdingsReversed : .holdings
+                    }
+                }
+
             }
-            Text("Price")
-                .frame(width: UIScreen.main.bounds.width / 3.5, alignment: .trailing)
+            HStack(spacing: 4) {
+                Text("Price")
+                    .frame(width: UIScreen.main.bounds.width / 3.5, alignment: .trailing)
+                Image(systemName: "chevron.down")
+                    .opacity((vm.sortOption == .price || vm.sortOption == .priceReversed) ? 1.0 : 0.0)
+                    .rotationEffect(Angle(degrees: vm.sortOption == .price ? 0 : 180))
+            }
+            .onTapGesture {
+                withAnimation {
+                    vm.sortOption = vm.sortOption == .price ? .priceReversed : .price
+                }
+            }
 
             Button {
                 withAnimation(.linear(duration: 2.0)) {
