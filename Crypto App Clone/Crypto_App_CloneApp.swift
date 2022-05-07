@@ -16,6 +16,9 @@ struct Crypto_App_CloneApp: App {
     init() {
         UINavigationBar.appearance().largeTitleTextAttributes = [.foregroundColor: UIColor(Color.theme.accent)]
         UINavigationBar.appearance().titleTextAttributes = [.foregroundColor: UIColor(Color.theme.accent)]
+        UINavigationBar.appearance().tintColor = UIColor(Color.theme.accent)
+
+        UITableView.appearance().backgroundColor = .clear
     }
     
     var body: some Scene {
@@ -25,6 +28,7 @@ struct Crypto_App_CloneApp: App {
                     HomeView()
                         .navigationBarHidden(true)
                 }
+                .navigationViewStyle(.stack)
                 .environmentObject(vm)
                 ZStack {
                     if showLaunchView {
